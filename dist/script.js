@@ -1,5 +1,5 @@
-﻿const services=[{id:'corte',name:'Corte & escova',duration:60,price:100},{id:'coloracao',name:'Coloração',duration:120,price:180},{id:'tratamento',name:'Hidratação',duration:60,price:80},{id:'unhas',name:'Manicure',duration:60,price:35}];
-const $=id=>document.getElementById(id),key='jaiane-neves-bookings-v1',money=n=>n.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+const services=[{id:'progressiva',name:'Progressiva',duration:120,price:null},{id:'selagem',name:'Selagem',duration:120,price:null}];
+const $=id=>document.getElementById(id),key='jaiane-neves-bookings-v1',money=n=>n==null?'A combinar':n.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
 let selectedDate='',selectedTime='',viewMonth=new Date(new Date().getFullYear(),new Date().getMonth(),1);
 function localDate(d=new Date()){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
 function readBookings(){try{const data=JSON.parse(localStorage.getItem(key)||'[]');return Array.isArray(data)?data.filter(b=>b&&typeof b.id==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(b.date)&&/^\d{2}:\d{2}$/.test(b.time)&&Number.isFinite(b.duration)&&b.duration>0):[]}catch{return []}}
