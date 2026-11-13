@@ -21,6 +21,20 @@ assert.equal((await request('/api/bookings','POST',{...booking,hairLength:'inval
 r=await request('/api/availability?month='+date.slice(0,7));const publicData=await r.json();assert.deepEqual(Object.keys(publicData.bookings[0]).sort(),['date','duration','time']);
 r=await request('/api/admin/bookings','GET',null,cookie);const privateData=await r.json();assert.equal(privateData.bookings[0].hair_length,'longo');assert.equal(privateData.bookings[0].name,'Cliente Teste');
 assert.equal((await request('/api/admin/bookings/'+b.id,'DELETE',null,cookie)).status,200);assert.equal(sql.prepare('SELECT count(*) AS count FROM occupied_slots').get().count,0);for(const [hairLength,price] of Object.entries({retoque3:100,retoque6:120,curto:130,medio:150,longo:170,extralongo:200})){const response=await request('/api/bookings','POST',{...booking,hairLength});assert.equal(response.status,201);const saved=await response.json();assert.equal(saved.price,price);await request('/api/admin/bookings/'+saved.id,'DELETE',null,cookie);}
+
+for(const pair of [['progressiva','progressiva'],['progressiva','selagem'],['selagem','selagem']]){
+ sql.exec('DELETE FROM rate_limits');
+ const responses=await Promise.all([request('/api/bookings','POST',{...booking,service:pair[0],time:'09:00'}),request('/api/bookings','POST',{...booking,service:pair[1],time:'12:00'}),request('/api/bookings','POST',{...booking,service:'selagem',time:'15:00'})]);
+ assert.deepEqual(responses.map(r=>r.status).sort(),[201,201,409]);
+ assert.equal(sql.prepare('SELECT count(*) AS count FROM bookings WHERE date=?').get(date).count,2);
+ assert.equal(sql.prepare('SELECT count(*) AS count FROM occupied_slots WHERE date=?').get(date).count,4);
+ const full=await request('/api/bookings','POST',{...booking,time:'15:00'});assert.equal(full.status,409);assert.match((await full.json()).error,/limite de 2/);
+ const rows=sql.prepare('SELECT id FROM bookings WHERE date=?').all(date);
+ await request('/api/admin/bookings/'+rows[0].id,'DELETE',null,cookie);
+ assert.equal((await request('/api/bookings','POST',{...booking,time:'15:00'})).status,201);
+ for(const row of sql.prepare('SELECT id FROM bookings').all())await request('/api/admin/bookings/'+row.id,'DELETE',null,cookie);
+}
+console.log('PASS: daily capacity of two for all service combinations, simultaneous requests, no orphan slots and cancellation reopening.');
 assert.equal((await request('/api/admin/password','POST',{currentPassword:'test-password-strong-123',password:'new-strong-password-456'},cookie)).status,200);
 assert.equal((await request('/api/admin/bookings','GET',null,cookie)).status,401);
 assert.equal((await request('/api/admin/login','POST',{password:'test-password-strong-123'})).status,401);
