@@ -1,5 +1,5 @@
-export const MANUAL_RESERVATIONS=[{date:'2026-12-03',time:'08:00',duration:120},{date:'2026-12-05',time:'08:00',duration:120},{date:'2026-12-06',time:'14:00',duration:120}];
-export const PENDING_DATES=['2026-12-08','2026-12-09','2026-12-10','2026-12-17'];
+export const MANUAL_RESERVATIONS=[{date:'2026-12-03',time:'08:00',duration:120},{date:'2026-12-05',time:'08:00',duration:120},{date:'2026-12-06',time:'14:00',duration:120},{date:'2026-12-10',time:'08:00',duration:120}];
+export const PENDING_DATES=['2026-12-08','2026-12-09','2026-12-17'];
 export const CLOSED_DATES=['2026-12-04','2026-12-13','2026-12-19','2026-12-20'];
 const PRICES={"retoque3":100,"retoque6":120,"curto":130,"medio":150,"longo":170,"extralongo":200};
 const SERVICES={progressiva:{name:'Progressiva',duration:120},selagem:{name:'Selagem',duration:120}};
