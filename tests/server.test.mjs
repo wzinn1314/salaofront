@@ -11,7 +11,7 @@ assert.equal((await request('/api/admin/bookings')).status,401);
 assert.equal((await request('/api/admin/login','POST',{password:'wrong'})).status,401);
 assert.equal((await request('/api/admin/login','POST',{password:'test-password-strong-123'},'','https://evil.test')).status,403);
 let r=await request('/api/admin/login','POST',{password:'test-password-strong-123'});assert.equal(r.status,200);const cookie=r.headers.get('set-cookie').split(';')[0];assert.match(r.headers.get('set-cookie'),/HttpOnly; Secure; SameSite=Strict/);
-let d=new Date(salonNow().date+'T12:00:00Z');d.setUTCDate(d.getUTCDate()+1);while(d.getUTCDay()!==1)d.setUTCDate(d.getUTCDate()+1);const date=d.toISOString().slice(0,10);
+let d=new Date(salonNow().date+'T12:00:00Z');d.setUTCDate(d.getUTCDate()+1);while(d.getUTCDay()!==2)d.setUTCDate(d.getUTCDate()+1);const date=d.toISOString().slice(0,10);
 const booking={service:'progressiva',date,time:'08:00',name:'Cliente Teste',phone:'11999999999',hairLength:'longo',price:1};
 r=await request('/api/bookings','POST',booking);assert.equal(r.status,201);const b=await r.json();assert.equal(b.price,170);assert.equal(sql.prepare('SELECT price FROM bookings').get().price,170);
 assert.equal((await request('/api/bookings','POST',{...booking,time:'08:00'})).status,409);
@@ -36,9 +36,10 @@ for(const pair of [['progressiva','progressiva'],['progressiva','selagem'],['sel
 }
 console.log('PASS: daily capacity of two for all service combinations, simultaneous requests, no orphan slots and cancellation reopening.');
 
-const saturday=new Date(date+'T12:00:00Z');saturday.setUTCDate(saturday.getUTCDate()+5);const sunday=new Date(saturday);sunday.setUTCDate(sunday.getUTCDate()+1);
+const monday=new Date(date+'T12:00:00Z');monday.setUTCDate(monday.getUTCDate()-1);const mondayDate=monday.toISOString().slice(0,10);assert.deepEqual(allowedTimes(mondayDate),[]);for(const time of ['08:00','14:00','17:30'])assert.equal((await request('/api/bookings','POST',{...booking,date:mondayDate,time})).status,400);console.log('PASS: Monday closed for every time.');
+const saturday=new Date(date+'T12:00:00Z');saturday.setUTCDate(saturday.getUTCDate()+4);const sunday=new Date(saturday);sunday.setUTCDate(sunday.getUTCDate()+1);
 assert.deepEqual(allowedTimes(date),['08:00','17:30']);assert.deepEqual(allowedTimes(saturday.toISOString().slice(0,10)),['08:00','14:00']);assert.deepEqual(allowedTimes(sunday.toISOString().slice(0,10)),['08:00','14:00']);
-const today=salonNow().date,validToday=allowedTimes(today)[0],minute=Number(validToday.slice(0,2))*60+Number(validToday.slice(3));assert.equal(validSlot(today,validToday,120,{date:today,minutes:minute}),false);assert.equal(validSlot(today,validToday,120,{date:today,minutes:minute-1}),true);
+const today=date,validToday=allowedTimes(today)[0],minute=Number(validToday.slice(0,2))*60+Number(validToday.slice(3));assert.equal(validSlot(today,validToday,120,{date:today,minutes:minute}),false);assert.equal(validSlot(today,validToday,120,{date:today,minutes:minute-1}),true);
 for(const weekend of [saturday,sunday]){sql.exec('DELETE FROM rate_limits');const weekendDate=weekend.toISOString().slice(0,10);assert.equal((await request('/api/bookings','POST',{...booking,date:weekendDate,time:'17:30'})).status,400);for(const time of ['08:00','14:00'])assert.equal((await request('/api/bookings','POST',{...booking,date:weekendDate,time})).status,201);for(const row of sql.prepare('SELECT id FROM bookings').all())await request('/api/admin/bookings/'+row.id,'DELETE',null,cookie);}
 // A reservation from the previous timetable must still prevent an overlap.
 sql.exec('DELETE FROM rate_limits');sql.prepare('INSERT INTO bookings (id,service,date,time,duration,name,phone,hair_length,created_at,price) VALUES (?,?,?,?,?,?,?,?,?,?)').run('legacy','Progressiva',date,'17:00',120,'Anterior','11999999999','longo',Date.now(),170);assert.equal((await request('/api/bookings','POST',{...booking,time:'17:30'})).status,409);assert.equal(sql.prepare('SELECT count(*) AS count FROM bookings').get().count,1);await request('/api/admin/bookings/legacy','DELETE',null,cookie);

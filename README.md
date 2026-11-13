@@ -22,4 +22,4 @@ Senhas: PBKDF2-SHA256, salt aleatório e 100.000 iterações (suportadas pelo Wo
 
 Limite diário: no máximo dois atendimentos por data, independentemente do procedimento. A inserção condicional acontece na mesma transação que bloqueia os horários, impedindo ultrapassar o limite mesmo com requisições simultâneas. Cancelar libera a capacidade. Reservas anteriores à regra não são apagadas.
 
-Horários de início: segunda a sexta às 08:00 ou 17:30; sábado e domingo às 08:00 ou 14:00. O servidor aceita somente esses horários no fuso America/Sao_Paulo. O limite diário de dois e a proteção contra sobreposição permanecem; reservas antigas são preservadas.
+Horários de início: terça a sexta às 08:00 ou 17:30; sábado e domingo às 08:00 ou 14:00. O servidor aceita somente esses horários no fuso America/Sao_Paulo. O limite diário de dois e a proteção contra sobreposição permanecem; reservas antigas são preservadas.
