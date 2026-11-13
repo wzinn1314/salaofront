@@ -1,1 +1,4 @@
 outputs/
+.local/
+node_modules/
+.env.local

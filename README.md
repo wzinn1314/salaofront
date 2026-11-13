@@ -2,7 +2,22 @@
 
 Interface HTML, CSS e JavaScript, sem imagem no cabeçalho. Progressiva e selagem, com nome, WhatsApp e comprimento do cabelo. Valor confirmado após avaliação. Duração provisória: 120 minutos.
 
-## Execução
+## Rodar no computador (porta 5500)
+
+Requisito: Node.js 22.13 ou superior (validado com Node.js 24). Não precisa instalar pacotes.
+
+1. Abra o terminal nesta pasta.
+2. Pare o Live Server, se estiver usando a porta 5500.
+3. Execute `npm start` (ou `node scripts/dev-server.mjs`).
+4. Abra http://localhost:5500 e http://localhost:5500/admin.
+
+Use Ctrl+C para encerrar. `npm run dev` reinicia o servidor quando o código do backend muda. HTML, CSS e JavaScript são lidos diretamente de public em cada acesso; atualize a página para ver mudanças.
+
+O servidor local executa a mesma API de agendamento, usando SQLite persistente em .local/agendamentos.sqlite. Ele aplica as migrações automaticamente. Dados e credenciais locais são ignorados pelo Git e independentes do site publicado. Em um computador novo, a senha inicial numérica aparece no terminal somente na primeira execução e pode ser trocada no painel; apenas o hash é armazenado. Neste computador, foi configurada a mesma senha numérica já fornecida.
+
+Abra o endereço do servidor, sem /public ou /dist. Os caminhos antigos também são redirecionados. Não abra o arquivo HTML diretamente nem use Go Live: isso não executa a API. O servidor aceita conexões somente deste computador. Cookies HTTP são adaptados apenas para o ambiente local; a publicação continua com cookies Secure.
+
+## Publicação no Sites
 
 `node scripts/build.mjs` gera o Worker ESM em `dist/server/index.js` com as páginas incorporadas. Fontes: `public/` e `server/worker.mjs`. Use a URL hospedada para executar a API; abrir HTML local não executa o servidor. O manifesto declara D1 como DB; Sites aplica as migrações em drizzle na publicação. A política de acesso existente no Sites foi preservada.
 

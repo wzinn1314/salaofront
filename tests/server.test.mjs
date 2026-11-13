@@ -1,7 +1,7 @@
 ﻿import {DatabaseSync} from 'node:sqlite';
 import {readFileSync} from 'node:fs';
 import assert from 'node:assert/strict';
-import worker,{passwordHash,salonNow,allowedTimes,validSlot} from '../server/worker.mjs';
+import worker,{passwordHash,salonNow,allowedTimes,validSlot,CLOSED_DATES} from '../server/worker.mjs';
 const sql=new DatabaseSync(':memory:');sql.exec(readFileSync('drizzle/0000_booking.sql','utf8').replaceAll('--> statement-breakpoint',''));sql.exec(readFileSync('drizzle/0001_booking_price.sql','utf8'));
 function stmt(query,args=[]){const p=sql.prepare(query);return {bind(...values){return stmt(query,values)},async first(){return p.get(...args)||null},async all(){return {results:p.all(...args)}},async run(){return p.run(...args)},_run(){return p.run(...args)}}}
 const DB={prepare:stmt,async batch(list){sql.exec('BEGIN');try{const out=list.map(s=>s._run());sql.exec('COMMIT');return out}catch(e){sql.exec('ROLLBACK');throw e}}};
@@ -49,3 +49,6 @@ assert.equal((await request('/api/admin/bookings','GET',null,cookie)).status,401
 assert.equal((await request('/api/admin/login','POST',{password:'test-password-strong-123'})).status,401);
 assert.equal((await request('/api/admin/login','POST',{password:'new-strong-password-456'})).status,200);
 console.log('PASS: server auth, CSRF, HttpOnly sessions, booking validation, atomic conflicts, privacy, hair length, cancellation, password changes and session revocation.');
+
+for(const date of CLOSED_DATES){assert.deepEqual(allowedTimes(date),[]);for(const time of ['08:00','14:00','17:30'])assert.equal(validSlot(date,time,120,{date:'2026-11-13',minutes:0}),false)}
+const blockedMonth=await (await request('/api/availability?month=2026-12')).json();assert.deepEqual(blockedMonth.closedDates,CLOSED_DATES);console.log('PASS: December 4, 13, 19 and 20 blocked in server and public availability.');
