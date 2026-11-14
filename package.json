@@ -2,7 +2,7 @@
   "name": "jaiane-neves-agendamento",
   "private": true,
   "type": "module",
-  "engines": { "node": ">=22.13.0" },
+  "engines": { "node": "24.x" },
   "scripts": {
     "start": "node backend/dev-server.mjs",
     "dev": "node --watch backend/dev-server.mjs",

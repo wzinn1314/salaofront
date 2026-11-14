@@ -29,7 +29,7 @@ Abra o endereço do servidor, sem /frontend, /public ou /dist. Os caminhos antig
 
 ## Publicação do frontend na Vercel
 
-Importe o repositório `wzinn1314/salaofront` e deixe **Root Directory** como `.` (raiz). O `vercel.json` define o framework como Other, o comando `npm run build:frontend` e a saída `dist/frontend`. A página de administração fica em `/admin`.
+Importe o repositório `wzinn1314/salaofront` e deixe **Root Directory** como `.` (raiz). O `vercel.json` define o framework como Other, o comando `npm run build:frontend` e a saída `frontend`. A página de administração fica em `/admin`.
 
 Frontend e backend podem ficar neste mesmo repositório. A publicação na Vercel serve o frontend e uma ponte em `api/[...path].js`; ela não inicia o servidor local nem o Worker Cloudflare.
 

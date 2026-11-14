@@ -1,7 +1,6 @@
-import { cpSync, mkdirSync } from 'node:fs';
+import { accessSync } from 'node:fs';
 
-mkdirSync('dist/frontend', { recursive: true });
 for (const file of ['index.html', 'admin.html', 'styles.css', 'script.js', 'admin.js']) {
-  cpSync('frontend/' + file, 'dist/frontend/' + file);
+  accessSync('frontend/' + file);
 }
-console.log('Frontend preparado em dist/frontend.');
+console.log('Frontend validado e pronto para publicar em frontend/.');
