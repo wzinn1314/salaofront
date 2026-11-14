@@ -11,7 +11,7 @@ function context(html, script, fetch) {
   vm.createContext(sandbox);vm.runInContext(script,sandbox);return {run:s=>vm.runInContext(s,sandbox),elements};
 }
 let failFetch=false;
-const client=context(readFileSync('public/index.html','utf8'),readFileSync('public/script.js','utf8'),async()=>{if(failFetch)throw new Error('Sem conexão');return {ok:true,json:async()=>({bookings:[]})}});
+const client=context(readFileSync('frontend/index.html','utf8'),readFileSync('frontend/script.js','utf8'),async()=>{if(failFetch)throw new Error('Sem conexão');return {ok:true,json:async()=>({bookings:[]})}});
 await client.run('loadAvailability()');
 assert.equal(client.elements.get('service').children.length,2);
 const monday=new Date();monday.setDate(monday.getDate()+7);while(monday.getDay()!==1)monday.setDate(monday.getDate()+1);
@@ -30,7 +30,7 @@ for(const [option,price] of Object.entries({retoque3:100,retoque6:120,curto:130,
 failFetch=true;await client.run('loadAvailability()');assert.equal(client.run('availabilityReady'),false);assert.equal(client.run('slotsFor(testDates.tuesday).length'),0);assert.match(client.elements.get('timeHint').textContent,/Sem conexão/);
 console.log('PASS: elementos e inicialização do formulário, serviços, calendário, horários, segunda fechada, lotação, sobreposição, seis preços e falha de conexão.');
 
-const admin=context(readFileSync('public/admin.html','utf8'),readFileSync('public/admin.js','utf8'),async()=>({ok:false,status:401,json:async()=>({error:'Entre com a senha'})}));
+const admin=context(readFileSync('frontend/admin.html','utf8'),readFileSync('frontend/admin.js','utf8'),async()=>({ok:false,status:401,json:async()=>({error:'Entre com a senha'})}));
 await new Promise(resolve=>setImmediate(resolve));assert.equal(admin.elements.get('adminPanel').hidden,true);
 admin.run('allBookings='+JSON.stringify([{name:'Márcia',phone:'11999999999',service:'Progressiva',date:dates.tuesday,time:'08:00',hair_length:'longo',price:170},{name:'Ana',phone:'11888888888',service:'Selagem',date:dates.saturday,time:'14:00',hair_length:'curto',price:130}]));
 admin.elements.get('searchClient').value='marcia';assert.equal(admin.run('filteredBookings().length'),1);
@@ -52,3 +52,17 @@ admin.run('allBookings='+JSON.stringify([{name:'Cliente do caderno',phone:'',dat
 admin.elements.get('filterDate').value='';admin.elements.get('filterService').value='';admin.run('render()');
 assert.equal(admin.elements.get('adminBookings').children.length,1);
 console.log('PASS: cutoff navigation and manual client without invented time or phone.');
+
+client.run("availabilityReady=true;busyBookings=[{date:'2026-12-07',time:'17:30',duration:120}]");
+assert.deepEqual(Array.from(client.run("slotsFor('2026-12-07')")),['08:00']);
+
+for(const day of ['2026-12-08','2026-12-09']){client.run('availabilityReady=true;pendingDates=[];busyBookings='+JSON.stringify([{date:day,time:'17:30',duration:120}]));assert.deepEqual(Array.from(client.run('slotsFor('+JSON.stringify(day)+')')),['08:00']);}
+
+for(const [date,time,free] of [['2026-12-14','08:00','17:30'],['2026-12-17','17:30','08:00']]){client.run('availabilityReady=true;pendingDates=[];busyBookings='+JSON.stringify([{date,time,duration:120}]));assert.deepEqual(Array.from(client.run('slotsFor('+JSON.stringify(date)+')')),[free]);}
+
+for(const [date,free] of [['2026-12-22','17:30'],['2026-12-23','17:30'],['2026-12-24','17:30'],['2026-12-27','14:00']]){client.run('availabilityReady=true;pendingDates=[];busyBookings='+JSON.stringify([{date,time:'08:00',duration:120}]));assert.deepEqual(Array.from(client.run('slotsFor('+JSON.stringify(date)+')')),[free]);}
+
+const card=admin.elements.get('adminBookings').children[0];
+const badge=card.children[1].children.find(e=>e.className==='admin-name-row').children[1];
+assert.equal(badge.textContent,'Confirmado');
+assert.equal(card.children[2].children.length,1);

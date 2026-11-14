@@ -2,3 +2,9 @@ outputs/
 .local/
 node_modules/
 .env.local
+.env
+.env.*
+!.env.example
+.venv/
+dist/
+.vercel/

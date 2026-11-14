@@ -1,7 +1,7 @@
 ﻿import {DatabaseSync} from 'node:sqlite';
 import {readFileSync} from 'node:fs';
 import assert from 'node:assert/strict';
-import worker,{passwordHash,salonNow,allowedTimes,validSlot,CLOSED_DATES,MANUAL_RESERVATIONS,PENDING_DATES} from '../server/worker.mjs';
+import worker,{passwordHash,salonNow,allowedTimes,validSlot,CLOSED_DATES,MANUAL_RESERVATIONS,PENDING_DATES} from '../backend/worker.mjs';
 const sql=new DatabaseSync(':memory:');sql.exec(readFileSync('drizzle/0000_booking.sql','utf8').replaceAll('--> statement-breakpoint',''));sql.exec(readFileSync('drizzle/0001_booking_price.sql','utf8'));
 function stmt(query,args=[]){const p=sql.prepare(query);return {bind(...values){return stmt(query,values)},async first(){return p.get(...args)||null},async all(){return {results:p.all(...args)}},async run(){return p.run(...args)},_run(){return p.run(...args)}}}
 const DB={prepare:stmt,async batch(list){sql.exec('BEGIN');try{const out=list.map(s=>s._run());sql.exec('COMMIT');return out}catch(e){sql.exec('ROLLBACK');throw e}}};
@@ -44,7 +44,7 @@ for(const weekend of [saturday,sunday]){sql.exec('DELETE FROM rate_limits');cons
 // A reservation from the previous timetable must still prevent an overlap.
 sql.exec('DELETE FROM rate_limits');sql.prepare('INSERT INTO bookings (id,service,date,time,duration,name,phone,hair_length,created_at,price) VALUES (?,?,?,?,?,?,?,?,?,?)').run('legacy','Progressiva',date,'17:00',120,'Anterior','11999999999','longo',Date.now(),170);assert.equal((await request('/api/bookings','POST',{...booking,time:'17:30'})).status,409);assert.equal(sql.prepare('SELECT count(*) AS count FROM bookings').get().count,1);await request('/api/admin/bookings/legacy','DELETE',null,cookie);
 console.log('PASS: weekday 08:00/17:30, Saturday and Sunday 08:00/14:00, passed slots and legacy overlapping bookings.');
-for(const [date,free] of [['2026-12-03','17:30'],['2026-12-05','14:00'],['2026-12-06','08:00'],['2026-12-10','17:30']]){assert.deepEqual(allowedTimes(date),[free]);if(date>=salonNow().date){sql.exec('DELETE FROM rate_limits');const blocked=MANUAL_RESERVATIONS.find(b=>b.date===date);assert.equal((await request('/api/bookings','POST',{...booking,date,time:blocked.time})).status,400);const response=await request('/api/bookings','POST',{...booking,date,time:free});assert.equal(response.status,201);assert.equal((await request('/api/bookings','POST',{...booking,date,time:free})).status,409);await request('/api/admin/bookings/'+(await response.json()).id,'DELETE',null,cookie);assert.deepEqual(allowedTimes(date),[free]);}}
+for(const [date,free] of [['2026-12-22','17:30'],['2026-12-23','17:30'],['2026-12-24','17:30'],['2026-12-27','14:00'],['2026-12-14','17:30'],['2026-12-17','08:00'],['2026-12-08','08:00'],['2026-12-09','08:00'],['2026-12-07','08:00'],['2026-12-03','17:30'],['2026-12-05','14:00'],['2026-12-06','08:00'],['2026-12-10','17:30']]){assert.deepEqual(allowedTimes(date),[free]);if(date>=salonNow().date){sql.exec('DELETE FROM rate_limits');const blocked=MANUAL_RESERVATIONS.find(b=>b.date===date);assert.equal((await request('/api/bookings','POST',{...booking,date,time:blocked.time})).status,400);const response=await request('/api/bookings','POST',{...booking,date,time:free});assert.equal(response.status,201);assert.equal((await request('/api/bookings','POST',{...booking,date,time:free})).status,409);await request('/api/admin/bookings/'+(await response.json()).id,'DELETE',null,cookie);assert.deepEqual(allowedTimes(date),[free]);}}
 for(const date of PENDING_DATES){assert.deepEqual(allowedTimes(date),[]);for(const time of ['08:00','14:00','17:30'])assert.equal(validSlot(date,time,120,{date:'2026-11-13',minutes:0}),false)}
 const december=await (await request('/api/availability?month=2026-12')).json();assert.deepEqual(december.pendingDates,PENDING_DATES);assert.equal(december.bookings.filter(b=>b.date==='2026-12-03'&&b.time==='08:00').length,1);console.log('PASS: existing December reservations, remaining slots, cancellation preserves old bookings, pending times never invented.');
 
@@ -65,7 +65,7 @@ for(const date of ['2026-12-28','2026-12-29','2027-01-02']){
 }
 const named=await (await request('/api/admin/login','POST',{password:'new-strong-password-456'})).headers.get('set-cookie');
 const calendar=await (await request('/api/admin/bookings?date=2026-12-27','GET',null,named.split(';')[0])).json();
-assert.equal(calendar.bookings[0].name,'Vit\u00f3ria');assert.equal(calendar.bookings[0].time,'');
+assert.equal(calendar.bookings[0].name,'Vit\u00f3ria');assert.equal(calendar.bookings[0].time,'08:00');
 assert(!JSON.stringify(december).includes('C\u00edntia'));
 assert.equal(december.lastWorkingDate,'2026-12-27');
 console.log('PASS: season cutoff, named private calendar and pending time preserved.');

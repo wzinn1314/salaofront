@@ -1,17 +1,17 @@
-export const MANUAL_RESERVATIONS=[{date:'2026-12-03',time:'08:00',duration:120},{date:'2026-12-05',time:'08:00',duration:120},{date:'2026-12-06',time:'14:00',duration:120},{date:'2026-12-10',time:'08:00',duration:120},{date:'2026-12-22',time:'08:00',duration:120},{date:'2026-12-23',time:'08:00',duration:120}];
-export const PENDING_DATES=['2026-12-08','2026-12-09','2026-12-17','2026-12-24','2026-12-27'];
+export const MANUAL_RESERVATIONS=[{date:'2026-12-24',time:'08:00',duration:120},{date:'2026-12-27',time:'08:00',duration:120},{date:'2026-12-14',time:'08:00',duration:120},{date:'2026-12-17',time:'17:30',duration:120},{date:'2026-12-19',time:'08:00',duration:120},{date:'2026-12-19',time:'14:00',duration:120},{date:'2026-12-08',time:'17:30',duration:120},{date:'2026-12-09',time:'17:30',duration:120},{date:'2026-12-07',time:'17:30',duration:120},{date:'2026-12-03',time:'08:00',duration:120},{date:'2026-12-05',time:'08:00',duration:120},{date:'2026-12-06',time:'14:00',duration:120},{date:'2026-12-10',time:'08:00',duration:120},{date:'2026-12-22',time:'08:00',duration:120},{date:'2026-12-23',time:'08:00',duration:120}];
+export const PENDING_DATES=[];
 export const CLOSED_DATES=['2026-12-04','2026-12-13','2026-12-19','2026-12-20'];
 export const LAST_WORKING_DATE='2026-12-27';
 // Transcrição da agenda: horários ausentes permanecem sem confirmação.
 export const CALENDAR_CLIENTS=[
  ['03','Cíntia','08:00'],['04','Jucileide','08:00'],['04','Eduarda',null,'Tarde'],
  ['05','Dany','08:00'],['06','Vitória','14:00'],['07','Ana Júlia','17:30'],
- ['08','Micaelly',null],['09','Mãe de Vitória',null],['10','Pamela','08:00'],
- ['13','Raquel',null],['13','Auxiliadora',null],['14','Menina do reforço',null],
- ['17','Neide (tia de Vitória)',null],['19','Janinha',null],['19','Vanessa',null],
+ ['08','Micaelly','17:30'],['09','Mãe de Vitória','17:30'],['10','Pamela','08:00'],
+ ['13','Raquel',null],['13','Auxiliadora',null],['14','Menina do reforço','08:00'],
+ ['17','Neide (tia de Vitória)','17:30'],['19','Janinha','08:00'],['19','Vanessa','14:00'],
  ['20','Cecília','08:00'],['20','Dany',null,'Tarde'],['22','Jaiane','08:00'],
- ['23','Raylane','08:00'],['24','Cleidiane',null],['27','Vitória',null]
-].map(([day,name,time,period])=>({id:'calendar-'+day+'-'+name,date:'2026-12-'+day,name,time:time||'',period:period||'',duration:120,phone:'',service:'Procedimento a confirmar',hair_length:'',price:null,manual:true}));
+ ['23','Taylane','08:00'],['24','Cleidiane','08:00'],['27','Vitória','08:00']
+].map(([day,name,time,period])=>({id:'calendar-'+day+'-'+name,date:'2026-12-'+day,name,time:time||'',period:period||'',duration:120,phone:'',service:'Procedimento a confirmar',hair_length:'',price:null,manual:true,status:'confirmed'}));
 const PRICES={"retoque3":100,"retoque6":120,"curto":130,"medio":150,"longo":170,"extralongo":200};
 const SERVICES={progressiva:{name:'Progressiva',duration:120},selagem:{name:'Selagem',duration:120}};
 const encoder=new TextEncoder();
@@ -24,7 +24,7 @@ function equal(a,b){if(typeof a!=='string'||typeof b!=='string'||a.length!==b.le
 function json(body,status=200,headers={}){return new Response(JSON.stringify(body),{status,headers:{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff',...headers}})}
 function fail(message,status=400){return json({error:message},status)}
 export function salonNow(){const parts=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Sao_Paulo',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(new Date());const p=Object.fromEntries(parts.map(x=>[x.type,x.value]));return {date:`${p.year}-${p.month}-${p.day}`,minutes:Number(p.hour)*60+Number(p.minute)}}
-export function allowedTimes(date){if(date>LAST_WORKING_DATE||CLOSED_DATES.includes(date)||PENDING_DATES.includes(date))return [];const day=new Date(date+'T12:00:00Z').getUTCDay();if(day===1)return [];return (day===0||day===6?['08:00','14:00']:['08:00','17:30']).filter(time=>!MANUAL_RESERVATIONS.some(reservation=>reservation.date===date&&reservation.time===time))}
+export function allowedTimes(date){if(date>LAST_WORKING_DATE||CLOSED_DATES.includes(date)||PENDING_DATES.includes(date))return [];const day=new Date(date+'T12:00:00Z').getUTCDay();if(date==='2026-12-07')return ['08:00'];if(date==='2026-12-14')return ['17:30'];if(day===1)return [];return (day===0||day===6?['08:00','14:00']:['08:00','17:30']).filter(time=>!MANUAL_RESERVATIONS.some(reservation=>reservation.date===date&&reservation.time===time))}
 export function validSlot(date,time,duration,now=salonNow()){if(!/^\d{4}-\d{2}-\d{2}$/.test(date)||!/^\d{2}:\d{2}$/.test(time))return false;const d=new Date(date+'T12:00:00Z');if(Number.isNaN(d.getTime())||d.toISOString().slice(0,10)!==date||date<now.date)return false;const horizon=new Date(now.date+'T12:00:00Z');horizon.setUTCFullYear(horizon.getUTCFullYear()+1);if(d>horizon||!allowedTimes(date).includes(time))return false;const start=Number(time.slice(0,2))*60+Number(time.slice(3));return date!==now.date||start>now.minutes}
 async function body(request){if(Number(request.headers.get('content-length')||0)>4096)throw new Error('body');const text=await request.text();if(text.length>4096)throw new Error('body');return JSON.parse(text)}
 async function rate(db,key,limit,seconds){const now=Date.now(),bucket=Math.floor(now/(seconds*1000)),row=await db.prepare('INSERT INTO rate_limits (key,count,expires_at) VALUES (?,1,?) ON CONFLICT(key) DO UPDATE SET count=count+1 RETURNING count').bind(key+':'+bucket,now+seconds*1000).first();return row.count<=limit}
