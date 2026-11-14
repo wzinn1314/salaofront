@@ -6,3 +6,5 @@
 .manual-agenda{margin-bottom:20px;padding:20px 24px;background:#fcfaf5}.manual-agenda h3{font-size:21px;color:var(--gold)}.manual-agenda p{font-size:11px;margin:8px 0 0}#calendarNotice{background:var(--soft);padding:12px;border-radius:6px;margin-bottom:15px}
 
 .admin-view-tabs{display:flex;gap:10px;margin-top:26px;flex-wrap:wrap}.admin-view-tabs button[aria-pressed="true"]{background:var(--gold);border-color:var(--gold);color:white}.admin-client-actions .cancel{padding:11px 14px;border:1px solid #bd6969;border-radius:6px;color:#983c3c;font-size:11px;background:#fff7f7}.admin-client-actions .cancel:hover{background:#fbeaea}
+
+.booking-notification{padding:18px 22px;margin-bottom:20px;border:1px solid #c4d8bf;background:#eff7ec;color:#355b2b;border-radius:10px;font-size:14px;line-height:1.6}#bookingConfirmation .button{width:100%;margin-top:20px}#confirmationDetails{font-size:16px;color:var(--ink)}
