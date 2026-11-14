@@ -22,14 +22,14 @@ window.AgendaLocal = (() => {
   function slots(date, bookings) {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return [];
     const d = new Date(date+'T12:00:00Z');
-    if (Number.isNaN(d.getTime()) || d.toISOString().slice(0,10)!==date || date>lastWorkingDate || closedDates.includes(date)) return [];
+    if (Number.isNaN(d.getTime()) || d.toISOString().slice(0,10)!==date || date>lastWorkingDate) return [];
     const parts = Object.fromEntries(new Intl.DateTimeFormat('en-CA',{timeZone:'America/Sao_Paulo',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(new Date()).map(p=>[p.type,p.value]));
     const today = `${parts.year}-${parts.month}-${parts.day}`;
     if (date<today) return [];
     const booked = bookings.filter(b=>b.date===date);
-    if (booked.length>=2) return [];
+    if (booked.length>=2 || booked.some(b=>!b.time)) return [];
     const day = d.getUTCDay();
-    const times = date==='2026-12-07'?['08:00']:date==='2026-12-14'?['17:30']:day===1?[]:day===0||day===6?['08:00','14:00']:['08:00','17:30'];
+    const times = ['2026-12-07','2026-12-14'].includes(date)?['08:00','17:30']:day===1?[]:day===0||day===6?['08:00','14:00']:['08:00','17:30'];
     return times.filter(time => (date!==today || minutes(time)>Number(parts.hour)*60+Number(parts.minute)) && !booked.some(b=>b.time && minutes(time)<minutes(b.time)+b.duration && minutes(time)+120>minutes(b.time)));
   }
   async function hash(password, salt) {
@@ -46,7 +46,7 @@ window.AgendaLocal = (() => {
     const body = options.body ? JSON.parse(options.body) : {};
     if (url.pathname==='/api/availability' && method==='GET') {
       const month = url.searchParams.get('month');
-      return result({lastWorkingDate,closedDates:closedDates.filter(d=>d.startsWith(month)),pendingDates:[],bookings:read().filter(b=>b.date.startsWith(month)).map(({date,time,duration})=>({date,time,duration}))});
+      return result({lastWorkingDate,closedDates:closedDates.filter(d=>d.startsWith(month)&&read().filter(b=>b.date===d).length>=2),pendingDates:[...new Set(read().filter(b=>!b.time&&b.date.startsWith(month)).map(b=>b.date))],bookings:read().filter(b=>b.date.startsWith(month)).map(({date,time,duration})=>({date,time,duration}))});
     }
     if (url.pathname==='/api/bookings' && method==='POST') {
       if (!services[body.service] || !Object.hasOwn(prices,body.hairLength) || typeof body.name!=='string' || body.name.trim().length<2 || body.name.length>100 || !/^\d{10,11}$/.test(String(body.phone).replace(/\D/g,''))) return failure('Confira nome, WhatsApp e serviço.');
@@ -82,7 +82,6 @@ window.AgendaLocal = (() => {
     }
     if (url.pathname.startsWith('/api/admin/bookings/') && method==='DELETE') {
       const id=decodeURIComponent(url.pathname.split('/').pop()),bookings=read();
-      if (bookings.find(b=>b.id===id)?.manual) return failure('Este registro pertence à agenda do caderno.');
       save(bookings.filter(b=>b.id!==id));
       return result({ok:true});
     }
