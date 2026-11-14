@@ -1,4 +1,4 @@
-// Apenas a sessão de login fica no aparelho. As reservas ficam no PostgreSQL.
+// Apenas a sessão de login fica no aparelho. As reservas ficam no Firebase.
 window.AgendaAPI = (() => {
   const sessionKey='jaiane-api-session-v1';
   const fail=error=>({ok:false,status:503,json:async()=>({error})});
