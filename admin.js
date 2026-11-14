@@ -3,7 +3,7 @@ let allBookings=[],loadVersion=0;
 const labels={retoque3:'Retoque até 3 meses',retoque6:'Retoque de 5 a 6 meses',curto:'Cabelo curto',medio:'Cabelo médio',longo:'Cabelo grande',extralongo:'Cabelo extra longo'};
 const money=n=>n==null?'Não registrado':Number(n).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
 function nowSalon(){const parts=Object.fromEntries(new Intl.DateTimeFormat('en-CA',{timeZone:'America/Sao_Paulo',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(new Date()).map(p=>[p.type,p.value]));return {date:`${parts.year}-${parts.month}-${parts.day}`,time:`${parts.hour}:${parts.minute}`}}
-async function api(path,options={}){const r=await fetch(path,{...options,headers:{'Content-Type':'application/json',...options.headers}});const data=await r.json();if(!r.ok){const e=new Error(data.error||'Não foi possível concluir.');e.status=r.status;throw e}return data}
+async function api(path,options={}){const r=await AgendaLocal.request(path,{...options,headers:{'Content-Type':'application/json',...options.headers}});const data=await r.json();if(!r.ok){const e=new Error(data.error||'Não foi possível concluir.');e.status=r.status;throw e}return data}
 function showLogin(message=''){loadVersion++;allBookings=[];$('adminPanel').hidden=true;$('loginPanel').hidden=false;$('adminBookings').replaceChildren();$('loginStatus').textContent=message;['todayCount','upcomingCount','totalCount'].forEach(id=>$(id).textContent='0')}
 function showAdmin(){$('loginPanel').hidden=true;$('adminPanel').hidden=false;$('password').value=''}
 function normalized(s){return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase()}
@@ -17,3 +17,5 @@ $('logout').onclick=async()=>{try{await api('/api/admin/logout',{method:'POST',b
 $('changePassword').onclick=()=>{$('passwordForm').reset();$('passwordStatus').textContent='';$('passwordDialog').showModal()};$('closePassword').onclick=()=>$('passwordDialog').close();
 $('passwordForm').onsubmit=async e=>{e.preventDefault();const button=e.submitter;button.disabled=true;try{await api('/api/admin/password',{method:'POST',body:JSON.stringify({currentPassword:$('currentPassword').value,password:$('newPassword').value})});$('passwordForm').reset();$('passwordDialog').close();showLogin('Senha alterada. Entre com sua nova senha.')}catch(error){$('passwordStatus').textContent=error.message}finally{button.disabled=false}};
 window.addEventListener('focus',()=>{if(!$('adminPanel').hidden)load()});load();
+
+window.addEventListener('storage',()=>{if(!$('adminPanel').hidden)load()});

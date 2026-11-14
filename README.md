@@ -1,21 +1,17 @@
-# Jaiane Neves - Frontend
+# Jaiane Neves - Agenda local
 
-Frontend estatico do agendamento e painel administrativo. HTML, CSS e JavaScript ficam na raiz.
+Frontend estatico, sem servidor e sem API. HTML, CSS e JavaScript ficam na raiz.
 
 ## Vercel
 
-- Framework Preset: Other.
-- Root Directory: . (raiz).
-- Build Command: vazio, sem override.
-- Output Directory: . (ou desative o override para usar vercel.json).
-- Install Command: vazio, sem override.
+Framework Other; Root Directory .; Output Directory .; sem comandos de build ou instalacao. O arquivo vercel.json ja configura essa publicacao.
 
-Sem dependencias e sem build. Agendamento em / e painel em /admin.
+## Uso
 
-## Backend separado
+O calendario, as reservas e o painel usam localStorage no navegador. Os 21 registros do caderno sao carregados na primeira utilizacao e permanecem confirmados. O periodo termina em 27/12/2026.
 
-Este repositorio contem somente o frontend. API, banco e autenticacao ficarao em outro repositorio.
+No primeiro acesso a /admin, crie uma senha local com pelo menos 12 caracteres. A senha serve apenas para organizar o acesso neste navegador; nao e autenticacao de servidor. Os nomes do caderno fazem parte dos arquivos estaticos.
 
-As paginas chamam /api/* no mesmo dominio. Quando o backend estiver hospedado, configure um rewrite na Vercel para encaminhar essas rotas a URL HTTPS dele. A API precisa aceitar esse encaminhamento e preservar os cookies no dominio do frontend.
+Novas reservas e cancelamentos ficam somente neste navegador e dominio. Outros aparelhos nao recebem essas alteracoes e podem escolher o mesmo horario. Limpar os dados do navegador remove as alteracoes e a senha local. Use o mesmo navegador para administrar a agenda.
 
-Ate essa conexao ser configurada, as paginas abrem, mas a consulta da agenda, as reservas e o login precisam do backend.
+O backend separado em salaoback nao e utilizado por esta versao.
