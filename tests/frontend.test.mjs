@@ -43,3 +43,12 @@ admin.run('showLogin()');assert.equal(admin.elements.get('adminBookings').childr
 console.log('PASS: painel sem autenticação, busca sem acentos, busca por telefone, filtros combinados, limpeza dos filtros, cartões e limpeza de dados ao sair.');
 
 client.run("availabilityReady=true;closedDates=['2026-12-04','2026-12-13','2026-12-19','2026-12-20']");for(const date of ['2026-12-04','2026-12-13','2026-12-19','2026-12-20'])assert.equal(client.run('slotsFor('+JSON.stringify(date)+').length'),0);console.log('PASS: December full-day closures hide every time slot.');
+
+client.run("availabilityReady=true;renderCalendar()");
+assert.equal(client.run("slotsFor('2026-12-29').length"),0);
+client.run("viewMonth=new Date(2026,11,1);renderCalendar()");
+assert.equal(client.elements.get('nextMonth').disabled,true);
+admin.run('allBookings='+JSON.stringify([{name:'Cliente do caderno',phone:'',date:'2026-12-27',time:'',service:'Procedimento a confirmar',manual:true}]));
+admin.elements.get('filterDate').value='';admin.elements.get('filterService').value='';admin.run('render()');
+assert.equal(admin.elements.get('adminBookings').children.length,1);
+console.log('PASS: cutoff navigation and manual client without invented time or phone.');

@@ -57,3 +57,15 @@ console.log('PASS: server auth, CSRF, HttpOnly sessions, booking validation, ato
 for(const date of CLOSED_DATES){assert.deepEqual(allowedTimes(date),[]);for(const time of ['08:00','14:00','17:30'])assert.equal(validSlot(date,time,120,{date:'2026-11-13',minutes:0}),false)}
 const blockedMonth=await (await request('/api/availability?month=2026-12')).json();assert.deepEqual(blockedMonth.closedDates,CLOSED_DATES);console.log('PASS: December 4, 13, 19 and 20 blocked in server and public availability.');
 
+
+// End of the seasonal booking period is enforced even for direct API calls.
+for(const date of ['2026-12-28','2026-12-29','2027-01-02']){
+ assert.deepEqual(allowedTimes(date),[]);
+ assert.equal(validSlot(date,'08:00',120,{date:'2026-11-14',minutes:0}),false);
+}
+const named=await (await request('/api/admin/login','POST',{password:'new-strong-password-456'})).headers.get('set-cookie');
+const calendar=await (await request('/api/admin/bookings?date=2026-12-27','GET',null,named.split(';')[0])).json();
+assert.equal(calendar.bookings[0].name,'Vit\u00f3ria');assert.equal(calendar.bookings[0].time,'');
+assert(!JSON.stringify(december).includes('C\u00edntia'));
+assert.equal(december.lastWorkingDate,'2026-12-27');
+console.log('PASS: season cutoff, named private calendar and pending time preserved.');
