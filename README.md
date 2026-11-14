@@ -1,24 +1,13 @@
-# Jaiane Neves - Agendamento
+# Jaiane Neves - Frontend online
 
-Site estatico com todos os arquivos na raiz do repositorio. Nao tem dependencias, instalacao, etapa de build ou servidor.
+Paginas estaticas na raiz, sem dependencias e sem build. Publique como Other com Root Directory vazio e sem comandos de instalacao ou build.
 
-## Arquivos
+## Conectar a agenda
 
-- index.html: pagina inicial de agendamento.
-- admin.html: painel administrativo.
-- styles.css: estilos.
-- script.js e admin.js: interacoes das paginas.
-- agenda-local.js: armazenamento e regras locais.
-- agenda-caderno.js: reservas confirmadas do caderno.
+O backend fica em outro repositorio (salaoback) e usa PostgreSQL persistente. Preencha window.AGENDA_API_URL em config.js com a origem HTTPS do backend, sem /api no final. Nao coloque senhas nem conexoes de banco nesse arquivo publico.
 
-## Publicacao
+Configure FRONTEND_ORIGINS no backend com a origem exata deste site e publique os dois projetos. Sem a URL ou sem banco configurado, a agenda mostra erro e nao confirma reservas falsas.
 
-Importe a branch main como projeto estatico (Other). Use a raiz do repositorio, sem selecionar subpasta. Deixe instalacao e build vazios e desative overrides herdados de projetos anteriores. Se for solicitado um diretorio de saida, use ponto (.).
+Reservas, nomes e cancelamentos sao salvos no banco compartilhado, nunca no localStorage. Somente o token de login administrativo fica na aba, em sessionStorage. O painel atualiza a lista a cada 5 segundos e o calendario a cada 15 segundos enquanto visiveis.
 
-O painel abre por admin.html; todos os links e arquivos usam caminhos relativos, sem depender de regras de reescrita de URL.
-
-## Dados locais
-
-Novas reservas ficam somente neste navegador e dominio. Outros aparelhos nao sincronizam alteracoes e podem escolher o mesmo horario. No primeiro acesso ao painel, crie uma senha local de pelo menos 12 caracteres. Ela organiza o acesso local, sem autenticacao de servidor.
-
-Limpar os dados do navegador remove as alteracoes e a senha. Os registros iniciais do caderno ficam nos arquivos publicos do site, conforme autorizado. O atendimento termina em 27/12/2026.
+Os dados antigos gravados em navegadores nao sao apagados nem importados automaticamente. Os registros do caderno sao inicializados no backend. A senha administrativa e configurada no backend.
